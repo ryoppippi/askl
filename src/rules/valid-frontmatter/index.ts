@@ -25,7 +25,7 @@
  */
 import { parseDocument } from 'yaml';
 
-import { createSkillRule } from '../../create-skill-rule.ts';
+import { createSkillRule } from '../../core/rule.ts';
 
 export type FrontmatterIssueCode =
 	| 'invalid-allowed-tools'

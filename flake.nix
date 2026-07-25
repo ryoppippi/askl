@@ -1,17 +1,11 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nix-vite-plus = {
-      url = "github:ryoppippi/nix-vite-plus";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
-    { nixpkgs, nix-vite-plus, ... }:
+    { nixpkgs, ... }:
     let
-      nodeVersion = nixpkgs.lib.removeSuffix "\n" (builtins.readFile ./.node-version);
-      nodeMajor = builtins.head (nixpkgs.lib.splitString "." nodeVersion);
       systems = [
         "aarch64-darwin"
         "aarch64-linux"
@@ -26,27 +20,25 @@
           pkgs = import nixpkgs { inherit system; };
         in
         {
+          # `with pkgs;` puts the list in nixd's "package scope", which is what
+          # enables bare-identifier completion and version inlay hints
           default = pkgs.mkShellNoCC {
-            # `with pkgs;` puts the list in nixd's "package scope", which is what
-            # enables bare-identifier completion and version inlay hints
             packages = with pkgs; [
-              pkgs."nodejs_${nodeMajor}"
-              nix-vite-plus.packages.${system}.vp
+              bun
               git
               git-wt
-              pnpm
             ];
 
             shellHook = ''
               # Install when node_modules is missing or the lockfile is newer.
-              if [ ! -f node_modules/.pnpm/lock.yaml ] || [ pnpm-lock.yaml -nt node_modules/.pnpm/lock.yaml ]; then
+              if [ ! -f node_modules/.bun-install-stamp ] || [ bun.lock -nt node_modules/.bun-install-stamp ]; then
                 echo "Installing dependencies..."
-                vp install --frozen-lockfile
+                bun install --frozen-lockfile && touch node_modules/.bun-install-stamp
               fi
 
               # Set up direnv and JS dependencies whenever `git wt` creates a new
               # worktree, so worktrees are usable without a manual step.
-              git config --replace-all wt.hook "direnv allow || true; pnpm install --frozen-lockfile || true"
+              git config --replace-all wt.hook "direnv allow || true; bun install --frozen-lockfile || true"
 
               # Move deleted worktree directories to the trash instead of `rm -rf`,
               # which is noticeably slower on large node_modules and target trees.

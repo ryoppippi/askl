@@ -12,8 +12,8 @@
 		"skipLibCheck": true,
 		"strict": true,
 		"target": "ES2024",
-		"types": ["node", "vite-plus/test/globals", "vite-plus/test/importMeta"],
+		"types": ["bun-types", "node", "vitest/globals", "vitest/importMeta"],
 		"verbatimModuleSyntax": true
 	},
-	"include": ["src", "vite.config.ts"]
+	"include": ["src", "vitest.config.ts"]
 }

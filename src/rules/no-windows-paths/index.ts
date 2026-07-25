@@ -14,8 +14,8 @@
  *
  * @see https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
  */
-import { createSkillRule } from '../../create-skill-rule.ts';
-import { collectLocalMarkdownReferences } from '../../markdown-references.ts';
+import { collectLocalMarkdownReferences } from '../../core/markdown-references.ts';
+import { createSkillRule } from '../../core/rule.ts';
 
 export interface WindowsPathIssue {
 	line: number;

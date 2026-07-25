@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { dirname, extname, resolve } from 'node:path';
 
-import { createSkillRule } from '../../create-skill-rule.ts';
-import { escapesDirectory } from '../../file-paths.ts';
+import { escapesDirectory } from '../../core/file-paths.ts';
 import {
 	collectLocalMarkdownReferences,
 	type LocalMarkdownReference,
-} from '../../markdown-references.ts';
+} from '../../core/markdown-references.ts';
+import { createSkillRule } from '../../core/rule.ts';
 
 export const DEFAULT_MAX_REFERENCE_LINES = 100;
 
@@ -21,12 +21,6 @@ const TABLE_OF_CONTENTS_LINK = /^\s*[-*+]\s+\[[^\]]+\]\(#[^)]+\)/;
 export const longReferenceHasTocRule = createSkillRule(
 	'Require long text references to include a table of contents near the top.',
 	validateReferenceTablesOfContents,
-	{
-		maxLines: {
-			minimum: 1,
-			type: 'integer',
-		},
-	},
 );
 
 export function validateReferenceTablesOfContents(

@@ -19,12 +19,8 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-nix-cache
       - name: Install dependencies
-        run: nix develop --command vp install --frozen-lockfile
+        run: nix develop --command bun install --frozen-lockfile
       - name: Check
-        run: nix develop --command vp run check
-      # Continuous preview releases: every push and PR gets an installable
-      # npm package on pkg.pr.new. The check step already built dist via the
-      # test task, and pkg-pr-new packs with the pnpm workspace context so
-      # catalog: specifiers resolve.
-      - name: Publish preview package
-        run: nix develop --command vp exec pkg-pr-new publish --pnpm
+        run: nix develop --command bun run check
+      - name: Build
+        run: nix develop --command bun run build
