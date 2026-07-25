@@ -25,14 +25,18 @@ This downloads a prebuilt, dependency-free binary from
 verifies its SHA-256 checksum against the release's `checksums.txt`, and
 installs it to `~/.local/bin/askl` (override with `ASKL_INSTALL_DIR`).
 
-Alternatively, with [Nix](https://nixos.org) and [Bun](https://bun.sh)
-installed:
+## Nix
+
+The project also provides Nix flake outputs for users who already use Nix.
+The flake builds `askl` from source — see `flake.nix` and `package.nix` for
+details.
 
 ```sh
-git clone https://github.com/ryoppippi/oxlint-plugin-agent-skills
-cd oxlint-plugin-agent-skills
-nix develop            # or: bun install
-bun run build          # produces ./askl
+# Run without installing
+nix run github:ryoppippi/oxlint-plugin-agent-skills
+
+# Install into your profile
+nix profile install github:ryoppippi/oxlint-plugin-agent-skills
 ```
 
 ## Usage
@@ -180,6 +184,9 @@ bun run check
 
 `bun run check` runs formatting, linting, type checking, and tests.
 `bun run build` compiles the CLI into a standalone `./askl` binary.
+
+`nix build` builds the same binary through the `package.nix` derivation,
+without needing a local Bun install.
 
 </details>
 
