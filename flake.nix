@@ -1,19 +1,37 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    bun2nix = {
+      url = "github:nix-community/bun2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
-    { nixpkgs, ... }:
+    { nixpkgs, bun2nix, ... }:
     let
-      systems = [
-        "aarch64-darwin"
-        "aarch64-linux"
-        "x86_64-darwin"
-        "x86_64-linux"
-      ];
+      systems = import ./nix/systems.nix;
+
+      packages = nixpkgs.lib.genAttrs systems (
+        system:
+        let
+          askl = nixpkgs.legacyPackages.${system}.callPackage ./package.nix {
+            bun2nix = bun2nix.packages.${system}.default;
+          };
+        in
+        {
+          inherit askl;
+          default = askl;
+        }
+      );
     in
     {
+      inherit packages;
+
+      checks = nixpkgs.lib.genAttrs systems (system: {
+        build = packages.${system}.askl;
+      });
+
       devShells = nixpkgs.lib.genAttrs systems (
         system:
         let
@@ -25,6 +43,7 @@
           default = pkgs.mkShellNoCC {
             packages = with pkgs; [
               bun
+              bun2nix.packages.${system}.default
               git
               git-wt
             ];
