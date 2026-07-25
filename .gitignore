@@ -1,4 +1,5 @@
 .direnv
 /askl
+/result
 dist
 node_modules
