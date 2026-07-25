@@ -30,6 +30,7 @@
 		"format": "oxfmt --ignore-path=.oxfmtignore --write .",
 		"format:check": "oxfmt --ignore-path=.oxfmtignore --check .",
 		"lint": "oxlint --deny-warnings .",
+		"postinstall": "bun2nix -o nix/bun.nix",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"typecheck": "tsc --noEmit"
@@ -43,6 +44,7 @@
 	"devDependencies": {
 		"@types/bun": "1.3.14",
 		"@types/node": "22.19.21",
+		"bun2nix": "2.1.2",
 		"fs-fixture": "2.14.0",
 		"oxfmt": "0.57.0",
 		"oxlint": "1.72.0",
