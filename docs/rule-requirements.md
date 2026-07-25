@@ -1,7 +1,7 @@
 # Rule requirements
 
 This document maps the portable Agent Skills specification and the authoring
-guidance published for Claude and Codex to this plugin. It was reviewed on
+guidance published for Claude and Codex to `askl`'s rules. It was reviewed on
 2026-06-19.
 
 ## Sources
@@ -78,7 +78,7 @@ Priority: high. Configuration and documentation change.
 Different agent hosts can impose different initial skill-index limits. Codex
 limits its initial list to 2% of the model context window, or 8,000 characters
 when the context window is unknown. It shortens descriptions first and may then
-omit skills. The plugin must:
+omit skills. `askl` must:
 
 - document 8,000 characters as one host-specific configuration for
   `skill-index-budget`, not as a dedicated preset;
@@ -122,13 +122,10 @@ These are implemented discovery requirements rather than lint rules:
 - preserve repository-relative diagnostic paths;
 - document that Claude Code natively discovers `.claude/skills` and Codex
   natively discovers `.agents/skills` from the current directory up to the
-  repository root, while this plugin scans roots relative to Oxlint's working
+  repository root, while `askl` scans roots relative to its own working
   directory;
 - keep `.agent/skills`, `agents/skills`, and `skills` as compatibility roots,
-  not as claims about Claude Code- or Codex-native discovery;
-- revisit self-managed discovery if Oxlint starts passing Markdown files to
-  JavaScript plugins: diagnostics could then attach to `SKILL.md` itself and
-  file selection, ignore patterns, and caching would move to Oxlint.
+  not as claims about Claude Code- or Codex-native discovery.
 
 ## Out of scope for deterministic linting
 

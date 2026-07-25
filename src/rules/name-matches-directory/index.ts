@@ -20,7 +20,7 @@
  */
 import { basename, dirname } from 'node:path';
 
-import { createSkillRule } from '../../create-skill-rule.ts';
+import { createSkillRule } from '../../core/rule.ts';
 import { parseFrontmatter } from '../valid-frontmatter/index.ts';
 
 export interface DirectoryNameIssue {

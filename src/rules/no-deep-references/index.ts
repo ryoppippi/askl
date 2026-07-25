@@ -23,9 +23,9 @@
  */
 import { dirname, resolve } from 'node:path';
 
-import { createSkillRule } from '../../create-skill-rule.ts';
-import { escapesDirectory } from '../../file-paths.ts';
-import { collectLocalMarkdownReferences } from '../../markdown-references.ts';
+import { escapesDirectory } from '../../core/file-paths.ts';
+import { collectLocalMarkdownReferences } from '../../core/markdown-references.ts';
+import { createSkillRule } from '../../core/rule.ts';
 
 export interface ReferenceDepthIssue {
 	line: number;
@@ -40,11 +40,6 @@ export const noDeepReferencesRule = createSkillRule(
 	'Keep SKILL.md file references at most one directory deep.',
 	(filePath, source, option) =>
 		validateReferenceDepth(filePath, source, readAllowOutsideSkillDirectory(option)),
-	{
-		allowOutsideSkillDirectory: {
-			type: 'boolean',
-		},
-	},
 );
 
 export function validateReferenceDepth(

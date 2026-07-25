@@ -1,8 +1,8 @@
 import { dirname, resolve } from 'node:path';
 
-import { createSkillRule } from '../../create-skill-rule.ts';
-import { escapesDirectory, isPathInsideDirectory, targetExists } from '../../file-paths.ts';
-import { collectLocalMarkdownReferences } from '../../markdown-references.ts';
+import { escapesDirectory, isPathInsideDirectory, targetExists } from '../../core/file-paths.ts';
+import { collectLocalMarkdownReferences } from '../../core/markdown-references.ts';
+import { createSkillRule } from '../../core/rule.ts';
 
 export interface LocalReferenceIssue {
 	line: number;
@@ -13,11 +13,6 @@ export const noBrokenLocalReferencesRule = createSkillRule(
 	'Require local SKILL.md references to resolve inside the skill directory.',
 	(filePath, source, option) =>
 		validateLocalReferences(filePath, source, readAllowOutsideSkillDirectory(option)),
-	{
-		allowOutsideSkillDirectory: {
-			type: 'boolean',
-		},
-	},
 );
 
 export function validateLocalReferences(

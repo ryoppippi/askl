@@ -18,9 +18,9 @@
  *
  * @see https://agentskills.io/specification
  */
-import type { AggregateSkillIssue, DiscoveredSkill } from '../../create-skill-rule.ts';
+import type { AggregateSkillIssue, DiscoveredSkill } from '../../core/rule.ts';
 
-import { createAggregateSkillRule } from '../../create-skill-rule.ts';
+import { createAggregateSkillRule } from '../../core/rule.ts';
 import { parseFrontmatter } from '../valid-frontmatter/index.ts';
 
 interface NamedSkill {

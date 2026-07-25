@@ -22,9 +22,9 @@
  *
  * @see https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
  */
-import type { AggregateSkillIssue, DiscoveredSkill } from '../../create-skill-rule.ts';
+import type { AggregateSkillIssue, DiscoveredSkill } from '../../core/rule.ts';
 
-import { createAggregateSkillRule } from '../../create-skill-rule.ts';
+import { createAggregateSkillRule } from '../../core/rule.ts';
 import { parseFrontmatter } from '../valid-frontmatter/index.ts';
 
 export const DEFAULT_MAX_INDEX_CHARACTERS = 20_000;
@@ -35,12 +35,6 @@ export const DEFAULT_MAX_INDEX_CHARACTERS = 20_000;
 export const skillIndexBudgetRule = createAggregateSkillRule(
 	'Limit the combined size of every skill name and description.',
 	validateSkillIndexBudget,
-	{
-		maxCharacters: {
-			minimum: 1,
-			type: 'integer',
-		},
-	},
 );
 
 export function validateSkillIndexBudget(

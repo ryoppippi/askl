@@ -20,7 +20,7 @@
  * @see https://agentskills.io/specification
  * @see https://code.claude.com/docs/en/skills
  */
-import { createSkillRule, STRING_ARRAY_OPTION_SCHEMA } from '../../create-skill-rule.ts';
+import { createSkillRule } from '../../core/rule.ts';
 import { parseFrontmatter } from '../valid-frontmatter/index.ts';
 
 export interface UnknownFieldIssue {
@@ -77,10 +77,7 @@ export const DEFAULT_ALLOWED_FRONTMATTER_FIELDS: ReadonlySet<string> = new Set([
 export const noUnknownFrontmatterFieldsRule = createSkillRule(
 	"Reject SKILL.md frontmatter fields outside the Agent Skills specification and this rule's known host extensions.",
 	(_filePath, source, option) => validateKnownFields(source, readAdditionalFields(option)),
-	{
-		additionalFields: STRING_ARRAY_OPTION_SCHEMA,
-	},
-	false,
+	{ recommended: false },
 );
 
 export function validateKnownFields(

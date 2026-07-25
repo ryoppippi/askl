@@ -1,58 +1,63 @@
-# oxlint-plugin-agent-skills
+# askl
 
-[![npm version](https://img.shields.io/npm/v/oxlint-plugin-agent-skills?color=yellow)](https://npmjs.com/package/oxlint-plugin-agent-skills)
-[![npm downloads](https://img.shields.io/npm/dm/oxlint-plugin-agent-skills)](https://npmjs.com/package/oxlint-plugin-agent-skills)
-[![license](https://img.shields.io/npm/l/oxlint-plugin-agent-skills)](https://github.com/ryoppippi/oxlint-plugin-agent-skills/blob/main/LICENSE)
-
-Oxlint JavaScript plugin for validating the portable
+A standalone command-line linter for the portable
 [Agent Skills](https://agentskills.io/specification) format and host-specific
 skill authoring conventions.
 
-## Set up with an agent
-
-To let a coding agent (Claude Code, Codex, and so on) install and configure
-this plugin for you, paste this prompt:
+Every diagnostic points directly at the real `SKILL.md` file and line — `askl`
+reads Markdown and YAML frontmatter itself, so it needs no host linter, no
+JavaScript/TypeScript anchor file, and no project `node_modules` to run.
 
 ```text
-Set up oxlint-plugin-agent-skills in this repository: install oxlint and oxlint-plugin-agent-skills as dev dependencies.
-Read the installed docs locally — node_modules/oxlint-plugin-agent-skills/README.md for the Configure section, and node_modules/oxlint-plugin-agent-skills/src/rules/<rule>/README.md for each rule's options.
-Register the plugin and its rules in the Oxlint configuration, then run Oxlint against a JavaScript or TypeScript file to confirm the skills rules report as expected.
+.agents/skills/example/SKILL.md:2 error Frontmatter requires a description field. (valid-frontmatter)
+
+1 error, 0 warnings
 ```
 
 ## Install
 
 ```sh
-pnpm add -D oxlint oxlint-plugin-agent-skills
+curl -fsSL https://raw.githubusercontent.com/ryoppippi/oxlint-plugin-agent-skills/main/scripts/install.sh | sh
 ```
 
-## Configure
+This downloads a prebuilt, dependency-free binary from
+[GitHub Releases](https://github.com/ryoppippi/oxlint-plugin-agent-skills/releases),
+verifies its SHA-256 checksum against the release's `checksums.txt`, and
+installs it to `~/.local/bin/askl` (override with `ASKL_INSTALL_DIR`).
 
-```jsonc
-{
-	"jsPlugins": ["oxlint-plugin-agent-skills"],
-	"rules": {
-		"skills/valid-frontmatter": "error",
-		"skills/name-matches-directory": "error",
-		"skills/no-duplicate-skill-name": "error",
-		"skills/no-empty-skill-body": "error",
-		"skills/skill-index-budget": ["warn", { "maxCharacters": 20000 }],
-		"skills/max-skill-lines": ["warn", { "maxLines": 200 }],
-		"skills/no-broken-local-references": "error",
-		"skills/long-reference-has-toc": "warn",
-		"skills/no-deep-references": "warn",
-		"skills/no-windows-paths": "warn",
-		"skills/description-third-person": "warn",
-		// Opt-in: stricter than this plugin's default leniency.
-		"skills/no-unknown-frontmatter-fields": "off",
-	},
-}
+Alternatively, with [Nix](https://nixos.org) and [Bun](https://bun.sh)
+installed:
+
+```sh
+git clone https://github.com/ryoppippi/oxlint-plugin-agent-skills
+cd oxlint-plugin-agent-skills
+nix develop            # or: bun install
+bun run build          # produces ./askl
 ```
 
-This plugin registers its rules under the `skills` namespace, so each rule is
-referenced as `skills/<rule>` regardless of the package name.
+## Usage
 
-By default, each rule scans these paths relative to the Oxlint working
-directory:
+```sh
+askl                       # lint the default skill roots
+askl --format json         # machine-readable output for scripting
+askl --format github       # GitHub Actions workflow-command annotations
+askl --list-rules          # print every registered rule
+askl --help                # full flag reference
+```
+
+| Flag                       | Description                                                             |
+| -------------------------- | ----------------------------------------------------------------------- |
+| `-r, --roots <dir>`        | Skill root directory to scan (repeatable)                               |
+| `-c, --config <file>`      | Path to a config file (default: nearest `.asklrc.jsonc`/`.asklrc.json`) |
+| `-f, --format <fmt>`       | `pretty` (default), `json`, `unix`, or `github`                         |
+| `--rule <name>=<severity>` | Override one rule's severity (`off`, `warn`, or `error`) for this run   |
+| `--deny-warnings`          | Exit non-zero when only warnings are found                              |
+| `--list-rules`             | Print every registered rule and exit                                    |
+
+Exit codes: `0` clean, `1` a rule reported an error (or a warning with
+`--deny-warnings`), `2` a usage or config problem.
+
+By default, `askl` scans these paths relative to its working directory:
 
 - `.agent/skills`
 - `.agents/skills`
@@ -66,42 +71,55 @@ scans `.claude/skills` for project-level skills, and Codex natively scans
 root; the other defaults do not imply native discovery support for either
 host.
 
-Set the `roots` rule option to scan other locations, or to restrict scanning
-to specific hosts' directories — for example only Codex's `.agents/skills`
-and Claude Code's `.claude/skills`:
+## Configure
+
+`askl` reads the nearest `.asklrc.jsonc` (or `.asklrc.json`), searching from
+the current directory upward. JSON with comments and trailing commas is
+supported:
 
 ```jsonc
 {
+	// Restrict scanning to Codex's and Claude Code's native roots.
+	"roots": [".agents/skills", ".claude/skills"],
 	"rules": {
-		"skills/valid-frontmatter": [
-			"error",
-			{
-				"roots": [".agents/skills", ".claude/skills"],
-			},
-		],
+		"valid-frontmatter": "error",
+		"name-matches-directory": "error",
+		"no-duplicate-skill-name": "error",
+		"no-empty-skill-body": "error",
+		"skill-index-budget": ["warn", { "maxCharacters": 20000 }],
+		"max-skill-lines": ["warn", { "maxLines": 200 }],
+		"no-broken-local-references": "error",
+		"long-reference-has-toc": "warn",
+		"no-deep-references": "warn",
+		"no-windows-paths": "warn",
+		"description-third-person": "warn",
+		// Opt-in: stricter than the recommended preset below.
+		"no-unknown-frontmatter-fields": "off",
 	},
 }
 ```
 
-Apply the same `roots` option to each enabled rule that should inspect a custom
-location.
+Every rule not mentioned in the config file falls back to its recommended
+default: `error` for every rule except `no-unknown-frontmatter-fields`, which
+defaults to `off`. `--roots` and `--rule` on the command line take precedence
+over the config file for a single invocation.
 
 ## Rules
 
-| Rule                                                                                        | Checks                                                                                                                                         |
-| ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`skills/valid-frontmatter`](src/rules/valid-frontmatter/README.md)                         | Valid YAML, required `name` and `description`, field lengths and types, naming syntax, XML tags, and reserved names                            |
-| [`skills/name-matches-directory`](src/rules/name-matches-directory/README.md)               | Frontmatter `name` matches the directory containing `SKILL.md`                                                                                 |
-| [`skills/no-duplicate-skill-name`](src/rules/no-duplicate-skill-name/README.md)             | Frontmatter `name` is unique across all configured skill roots                                                                                 |
-| [`skills/no-empty-skill-body`](src/rules/no-empty-skill-body/README.md)                     | `SKILL.md` includes instructions after its frontmatter                                                                                         |
-| [`skills/skill-index-budget`](src/rules/skill-index-budget/README.md)                       | Combined `name` and `description` size across all skills stays within a configurable character budget                                          |
-| [`skills/max-skill-lines`](src/rules/max-skill-lines/README.md)                             | `SKILL.md` stays within a configurable line limit, defaulting to 200                                                                           |
-| [`skills/no-broken-local-references`](src/rules/no-broken-local-references/README.md)       | Relative Markdown references resolve to an existing file or directory, scoped to the skill directory by default                                |
-| [`skills/long-reference-has-toc`](src/rules/long-reference-has-toc/README.md)               | Long referenced text files provide a linked table of contents near the top                                                                     |
-| [`skills/no-deep-references`](src/rules/no-deep-references/README.md)                       | Relative Markdown links, images, and definitions point no deeper than one directory below `SKILL.md`, scoped to the skill directory by default |
-| [`skills/no-windows-paths`](src/rules/no-windows-paths/README.md)                           | Relative Markdown reference targets use forward slashes, not Windows-style backslashes                                                         |
-| [`skills/description-third-person`](src/rules/description-third-person/README.md)           | `description` is written in the third person, not first or second person                                                                       |
-| [`skills/no-unknown-frontmatter-fields`](src/rules/no-unknown-frontmatter-fields/README.md) | Frontmatter has no fields outside the specification and Claude Code's documented extensions (opt-in; not in the recommended preset)            |
+| Rule                                                                                 | Checks                                                                                                                                         |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`valid-frontmatter`](src/rules/valid-frontmatter/README.md)                         | Valid YAML, required `name` and `description`, field lengths and types, naming syntax, XML tags, and reserved names                            |
+| [`name-matches-directory`](src/rules/name-matches-directory/README.md)               | Frontmatter `name` matches the directory containing `SKILL.md`                                                                                 |
+| [`no-duplicate-skill-name`](src/rules/no-duplicate-skill-name/README.md)             | Frontmatter `name` is unique across all configured skill roots                                                                                 |
+| [`no-empty-skill-body`](src/rules/no-empty-skill-body/README.md)                     | `SKILL.md` includes instructions after its frontmatter                                                                                         |
+| [`skill-index-budget`](src/rules/skill-index-budget/README.md)                       | Combined `name` and `description` size across all skills stays within a configurable character budget                                          |
+| [`max-skill-lines`](src/rules/max-skill-lines/README.md)                             | `SKILL.md` stays within a configurable line limit, defaulting to 200                                                                           |
+| [`no-broken-local-references`](src/rules/no-broken-local-references/README.md)       | Relative Markdown references resolve to an existing file or directory, scoped to the skill directory by default                                |
+| [`long-reference-has-toc`](src/rules/long-reference-has-toc/README.md)               | Long referenced text files provide a linked table of contents near the top                                                                     |
+| [`no-deep-references`](src/rules/no-deep-references/README.md)                       | Relative Markdown links, images, and definitions point no deeper than one directory below `SKILL.md`, scoped to the skill directory by default |
+| [`no-windows-paths`](src/rules/no-windows-paths/README.md)                           | Relative Markdown reference targets use forward slashes, not Windows-style backslashes                                                         |
+| [`description-third-person`](src/rules/description-third-person/README.md)           | `description` is written in the third person, not first or second person                                                                       |
+| [`no-unknown-frontmatter-fields`](src/rules/no-unknown-frontmatter-fields/README.md) | Frontmatter has no fields outside the specification and Claude Code's documented extensions (opt-in; not in the recommended preset)            |
 
 Index budgets are host-dependent. Codex uses at most 2% of the model context
 window for its initial skill list, or 8,000 characters when the context window
@@ -109,16 +127,20 @@ is unknown. Projects targeting that fallback can configure
 `skill-index-budget` with `{ "maxCharacters": 8000 }`; other hosts can retain
 or choose a different explicit budget.
 
-Diagnostics are attached to the JavaScript or TypeScript file Oxlint is
-visiting, while each message starts with the actual `SKILL.md` path and line:
+## Suppressing a diagnostic
+
+Add an HTML comment to the `SKILL.md` source:
 
 ```text
-.agents/skills/example/SKILL.md:2 Frontmatter requires a description field.
+<!-- askl-disable-next-line no-windows-paths -->
+See [the Windows helper](scripts\help.ps1).
 ```
 
-Oxlint does not currently pass Markdown files to JavaScript plugins. Run
-Oxlint against at least one JavaScript or TypeScript file so the plugin can
-scan the configured skill roots.
+`<!-- askl-disable-next-line <rule> -->` suppresses `<rule>` for the line that
+follows the comment; `<!-- askl-disable <rule> -->` suppresses it for the
+whole file regardless of where the comment sits. Both accept a
+space-or-comma-separated list of rule names, and omitting the list suppresses
+every rule.
 
 ## Design requirements
 
@@ -134,7 +156,6 @@ proposed lint rules.
 - [OpenAI skill examples](https://github.com/openai/skills)
 - [Codex 220-line skill read analysis](https://www.reddit.com/r/codex/comments/1t1rbqt/codex_may_only_read_the_first_220_lines_of_a/)
 - [Codex CLI SKILL.md reading depth: empirical findings](https://gist.github.com/haru0416-dev/8c1b01098f46e29d244f2085e408c789)
-- [Oxlint JavaScript plugins](https://oxc.rs/docs/guide/usage/linter/js-plugins)
 
 ## GitHub Sponsors
 
@@ -149,14 +170,16 @@ proposed lint rules.
 <details>
 <summary>Set up the development environment and run the checks</summary>
 
-The Nix development shell provides Node.js 24 LTS and Vite+, which selects the
-pinned pnpm toolchain for the project:
+The Nix development shell provides Bun:
 
 ```sh
 nix develop
-vp install --frozen-lockfile
-vp run check
+bun install --frozen-lockfile
+bun run check
 ```
+
+`bun run check` runs formatting, linting, type checking, and tests.
+`bun run build` compiles the CLI into a standalone `./askl` binary.
 
 </details>
 

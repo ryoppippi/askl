@@ -1,4 +1,4 @@
 .direnv
-.vite-hooks
+/askl
 dist
 node_modules

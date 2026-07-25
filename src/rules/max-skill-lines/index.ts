@@ -25,7 +25,7 @@
  * @see https://www.reddit.com/r/codex/comments/1t1rbqt/codex_may_only_read_the_first_220_lines_of_a/
  * @see https://gist.github.com/haru0416-dev/8c1b01098f46e29d244f2085e408c789
  */
-import { createSkillRule } from '../../create-skill-rule.ts';
+import { createSkillRule } from '../../core/rule.ts';
 
 export interface SkillLengthIssue {
 	line: number;
@@ -38,12 +38,6 @@ export interface SkillLengthIssue {
 export const maxSkillLinesRule = createSkillRule(
 	'Limit SKILL.md instructions to a configurable number of lines.',
 	(_filePath, source, option) => validateSkillLength(source, readMaxLines(option)),
-	{
-		maxLines: {
-			minimum: 1,
-			type: 'integer',
-		},
-	},
 );
 
 export function validateSkillLength(source: string, maxLines = 200): SkillLengthIssue | undefined {

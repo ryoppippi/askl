@@ -1,14 +1,14 @@
 {
-	"name": "oxlint-plugin-agent-skills",
+	"name": "askl",
 	"version": "0.1.2",
-	"description": "Oxlint JavaScript plugin for validating Agent Skills against the Agent Skills specification and authoring best practices.",
+	"private": true,
+	"description": "Standalone linter for the Agent Skills specification and host authoring conventions.",
 	"keywords": [
 		"agent-skills",
 		"claude-code",
+		"cli",
 		"codex",
-		"lint",
-		"oxlint",
-		"oxlint-plugin"
+		"lint"
 	],
 	"homepage": "https://github.com/ryoppippi/oxlint-plugin-agent-skills#readme",
 	"bugs": "https://github.com/ryoppippi/oxlint-plugin-agent-skills/issues",
@@ -19,71 +19,37 @@
 		"url": "git+https://github.com/ryoppippi/oxlint-plugin-agent-skills.git"
 	},
 	"funding": "https://github.com/sponsors/ryoppippi",
-	"files": [
-		"dist",
-		"src",
-		"docs"
-	],
-	"type": "module",
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
-		}
+	"bin": {
+		"askl": "src/cli/index.ts"
 	},
+	"type": "module",
 	"scripts": {
-		"build": "vp run pack",
-		"format": "vp fmt --write",
-		"prepack": "vp run pack",
-		"prepare": "vp config --no-agent",
-		"test:watch": "vp test"
+		"askl": "bun run src/cli/index.ts",
+		"build": "bun build src/cli/index.ts --compile --define 'import.meta.vitest=undefined' --outfile askl",
+		"check": "bun run format:check && bun run lint && bun run typecheck && bun run test",
+		"format": "oxfmt --ignore-path=.oxfmtignore --write .",
+		"format:check": "oxfmt --ignore-path=.oxfmtignore --check .",
+		"lint": "oxlint --deny-warnings .",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@oxlint/plugins": "1.70.0",
+		"gunshi": "0.37.1",
+		"jsonc-parser": "3.3.1",
 		"mdast-util-from-markdown": "2.0.3",
 		"yaml": "2.9.0"
 	},
 	"devDependencies": {
+		"@types/bun": "1.3.14",
 		"@types/node": "22.19.21",
-		"changelogithub": "14.0.0",
 		"fs-fixture": "2.14.0",
+		"oxfmt": "0.57.0",
 		"oxlint": "1.72.0",
-		"oxlint-tsgolint": "0.24.0",
-		"pkg-pr-new": "0.0.78",
-		"publint": "0.3.21",
 		"typescript": "7.0.2",
-		"unplugin-unused": "0.5.7",
-		"vite": "catalog:",
-		"vite-plus": "catalog:"
-	},
-	"peerDependencies": {
-		"oxlint": ">=1.70.0"
-	},
-	"peerDependenciesMeta": {
-		"oxlint": {
-			"optional": true
-		}
+		"vitest": "4.1.10"
 	},
 	"engines": {
-		"node": ">=24"
-	},
-	"packageManager": "pnpm@11.15.0",
-	"changelogithub": {
-		"types": {
-			"feat": {
-				"title": "🚀 Features"
-			},
-			"fix": {
-				"title": "🐞 Bug Fixes"
-			},
-			"perf": {
-				"title": "🏎 Performance"
-			},
-			"docs": {
-				"title": "📖 Documentation"
-			}
-		}
+		"bun": ">=1.3.0"
 	}
 }
